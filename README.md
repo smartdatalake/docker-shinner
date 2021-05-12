@@ -1,62 +1,70 @@
-# Commands for running a process in Apache Spark
+# Commands for building and running the docker container for sHINNER
 
-## Workshop
+This docker was built based on the docker files provided by https://github.com/big-data-europe/docker-spark. 
+The only prequesite for this container is to have docker and docker-compose avaible in your environment.
 
-### Installing prerequisites
+### Download all sources
 
-#### Docker
-
-From shell:
-
-```
-$ sudo apt install docker.io
-```
-
-#### Docker Compose
-
-Downloading and installing from website.
-
-```
-$ sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-```
-
-Changing execution permissions.
-
-```
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-Create a simlynk to execute from any path
-
-```
-sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-```
-
+(1) Download this project
+(2) Download and build the gcore-spark-ggd project into the folder spark-submit of this project.
+(3) Download Spark version 2.4.7 from the Apache Spark website (https://spark.apache.org/) decompress, and rename its folder to spark. Move the spark folder to the base folder of this project.
+(4) Download the guice-4.0.jar file from the SmartDataLake sftp server and place it in the spark-submit folder of this project
 
 ### Build docker images
 
+The first step is to build the docker images according to what was configured.
 Execute from the shell the script build-images.sh
 
 ```
 $ sudo ./build-images.sh
 ```
 
-### Run the images created
+### Edit the available volumes and desired ports in docker-compose.yml
 
-```
-$ sudo docker-compose up
-```
-
-## Extras
-
-### Build a image from a Dockerfile
-
-```
-$ sudo docker build -t spark-submit:2.4.1 ./docker/spark-submit
+Edit the volumes path for all services at:
+```    
+    volumes:
+       - /your_path/DemoGraphs:/DemoGraphs
+       - /your_path/configuration:/Config
 ```
 
-### Execute a terminal process from a created image
+Edit the desired exposed ports for all services at:
+```
+    ports:
+      - "6080:6080"
+```
+In which the first port number is the port exposed from the docker and the second one is the port number used inside the docker container. The second port number should be kept the same as in the docker-compose.yml. If you do not have any conflicting ports it is recommended to keep the default values in the docker-composer.yml
+
+### Create the images 
+
+Run the following command:
 
 ```
-sudo docker run -i -t spark-submit:2.4.1 /bin/bash
+$ docker-compose create
 ```
+
+Or if you are interested in running the REST API application:
+
+```
+$ docker-compose up
+```
+
+### Run spark-submit according to the running mode of sHINNER:
+
+To run the command line application run:
+```
+$ docker-compose run spark-submit /bin/bash /start-submit-commandline.sh
+```
+
+To run the command line application with the entity resolution evaluation:
+```
+$ docker-compose run spark-submit /bin/bash /start-submit-ercommandline.sh
+```
+
+To run the REST API:
+```
+$ docker-compose run spark-submit /bin/bash /start-submit-webserver.sh
+```
+
+Observe that the command line with er evaluation mode receives two json files s arguments, by default it will bind to the folder /Config (specifically the files /Config/config.json and /Config/comparison.json, for more information about the condiguration files check the sHINNER Manual.pdf) inside the docker, do not forget to edit the folder path in docker-compose.yml.
+The same occurs for the REST API, it receives as default database the folder /DemoGraphs inside the docker container. 
