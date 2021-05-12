@@ -1,28 +1,67 @@
-FROM java:8-jdk-alpine
+FROM ubuntu:18.04
+
+RUN apt-get update \
+	&& apt-get install -y openjdk-8-jdk \
+	&& apt-get install -y curl
+
+#JAVA
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PATH $PATH:$JAVA_HOME/bin	
 
 ENV DAEMON_RUN=true
-ENV SPARK_VERSION=2.4.2
-ENV HADOOP_VERSION=2.7
-ENV SCALA_VERSION=2.12.8
+ENV SPARK_VERSION=2.4.7
+ENV HADOOP_VERSION=2.8.6
+ENV SCALA_VERSION=2.11.12
 ENV SCALA_HOME=/usr/share/scala
 
-RUN apk add --no-cache --virtual=.build-dependencies wget ca-certificates && \
-    apk add --no-cache bash curl jq && \
+RUN SCALA_SHA256_SUM=b11d7d33699ca4f60bc3b2b6858fd953e3de2b8522c943f4cda4b674316196a8 && \
+    apt-get update && \
+    apt-get -y install wget && \
     cd "/tmp" && \
-    wget --no-verbose "https://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz" && \
+    wget "http://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz" && \
+    echo "${SCALA_SHA256_SUM}" "scala-${SCALA_VERSION}.tgz" | sha256sum -c - && \
     tar xzf "scala-${SCALA_VERSION}.tgz" && \
     mkdir "${SCALA_HOME}" && \
     rm "/tmp/scala-${SCALA_VERSION}/bin/"*.bat && \
     mv "/tmp/scala-${SCALA_VERSION}/bin" "/tmp/scala-${SCALA_VERSION}/lib" "${SCALA_HOME}" && \
     ln -s "${SCALA_HOME}/bin/"* "/usr/bin/" && \
-    apk del .build-dependencies && \
-    rm -rf "/tmp/"*
-    
+    apt-get -y autoremove wget && \
+    apt-get -y clean && \
+    rm -rf "/tmp/"* \
+           "/var/cache/apt" \
+           "/usr/share/man" \
+           "/usr/share/doc" \
+           "/usr/share/doc-base" \
+           "/usr/share/info/*" 
+   
 #Scala instalation
-RUN export PATH="/usr/local/sbt/bin:$PATH" &&  apk update && apk add ca-certificates wget tar && mkdir -p "/usr/local/sbt" && wget -qO - --no-check-certificate "https://cocl.us/sbt-0.13.16.tgz" | tar xz -C /usr/local/sbt --strip-components=1 && sbt sbtVersion
+RUN export PATH="/usr/local/sbt/bin:$PATH" 
+#&& apt-get update && apt-get -y install wget && mkdir -p "/usr/local/sbt" && wget -qO - --no-check-certificate "https://cocl.us/sbt-0.13.16.tgz" | tar xz -C /usr/local/sbt --strip-components=1 && sbt sbtVersion
 
-RUN apk add --no-cache python3
+#RUN apk add --no-cache python3
 
-RUN wget --no-verbose http://apache.mirror.iphh.net/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && tar -xvzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
-      && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} spark \
-      && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
+#RUN wget --no-verbose http://apache.mirror.iphh.net/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && tar -xvzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
+#      && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} spark \
+#      && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
+
+# HADOOP
+#ENV HADOOP_VERSION 2.8.5
+#ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
+#ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+#ENV PATH $PATH:$HADOOP_HOME/bin
+#RUN curl -sL --retry 3 \
+#  "http://archive.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" \
+#  | gunzip \
+#  | tar -x -C /usr/ \
+# && rm -rf $HADOOP_HOME/share/doc \
+# && chown -R root:root $HADOOP_HOME
+
+# SPARK
+ENV SPARK_VERSION 2.4.7
+ENV SPARK_HOME /usr/spark
+#ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
+ENV PATH $PATH:${SPARK_HOME}/bin
+ENV PATH $PATH:${SPARK_HOME}/sbin
+
+COPY ./spark $SPARK_HOME
+RUN chown -R root:root $SPARK_HOME

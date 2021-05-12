@@ -1,6 +1,6 @@
 # Commands for building and running the docker container for sHINNER
 
-This docker was built based on the docker files provided by https://github.com/big-data-europe/docker-spark. 
+This docker was built based on the docker files provided by https://github.com/jsatch/spark-docker. 
 The only prequesite for this container is to have docker and docker-compose avaible in your environment.
 
 ### Download all sources

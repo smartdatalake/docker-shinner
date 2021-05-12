@@ -1,10 +1,10 @@
-FROM spark-base:2.4.1
+FROM spark-base:2.4.6
 
 COPY start-master.sh /
 
 ENV SPARK_MASTER_PORT 7077
 ENV SPARK_MASTER_WEBUI_PORT 8080
-ENV SPARK_MASTER_LOG /spark/logs
+ENV SPARK_MASTER_LOG /usr/spark/logs
 
 EXPOSE 8080 7077 6066
 
