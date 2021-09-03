@@ -6,9 +6,12 @@ The only prequesite for this container is to have docker and docker-compose avai
 ### Download all sources
 
 (1) Download this project
+
 (2) Download and build the gcore-spark-ggd project into the folder spark-submit of this project.
+
 (3) Download Spark version 2.4.7 from the Apache Spark website (https://spark.apache.org/) decompress, and rename its folder to spark. Move the spark folder to the base folder of this project.
-(4) Download the guice-4.0.jar file from the SmartDataLake sftp server and place it in the spark-submit folder of this project
+
+(4) Download the guice-4.0.jar file from the Guice repository (https://github.com/google/guice/releases/tag/4.0) and place it in the spark-submit folder of this project
 
 ### Build docker images
 
