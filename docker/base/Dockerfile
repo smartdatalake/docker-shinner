@@ -1,10 +1,20 @@
 FROM ubuntu:18.04
 
-RUN apt-get update \
-	&& apt-get install -y openjdk-8-jdk \
-	&& apt-get install -y curl
+#############UBUNTU
+#RUN apt-get update \
+#	&& apt-get install -y openjdk-8-jdk \
+#	&& apt-get install -y curl 
 
-#JAVA
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openjdk-8-jdk \
+    net-tools \
+    curl \
+    netcat \
+    gnupg \
+    libsnappy-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+###################JAVA
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PATH $PATH:$JAVA_HOME/bin	
 
@@ -34,7 +44,7 @@ RUN SCALA_SHA256_SUM=b11d7d33699ca4f60bc3b2b6858fd953e3de2b8522c943f4cda4b674316
            "/usr/share/doc-base" \
            "/usr/share/info/*" 
    
-#Scala instalation
+#############Scala instalation
 RUN export PATH="/usr/local/sbt/bin:$PATH" 
 #&& apt-get update && apt-get -y install wget && mkdir -p "/usr/local/sbt" && wget -qO - --no-check-certificate "https://cocl.us/sbt-0.13.16.tgz" | tar xz -C /usr/local/sbt --strip-components=1 && sbt sbtVersion
 
@@ -44,7 +54,7 @@ RUN export PATH="/usr/local/sbt/bin:$PATH"
 #      && mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} spark \
 #      && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
 
-# HADOOP
+################# HADOOP
 #ENV HADOOP_VERSION 2.8.5
 #ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 #ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
@@ -56,7 +66,34 @@ RUN export PATH="/usr/local/sbt/bin:$PATH"
 # && rm -rf $HADOOP_HOME/share/doc \
 # && chown -R root:root $HADOOP_HOME
 
-# SPARK
+RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
+
+RUN gpg --import KEYS
+
+ENV HADOOP_VERSION 3.2.2
+ENV HADOOP_URL https://mirror.klaus-uwe.me/apache/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
+ENV HADOOP_ASC https://downloads.apache.org/hadoop/common/hadoop-3.2.2/hadoop-3.2.2.tar.gz.asc
+
+RUN set -x \
+    && curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz \
+    && curl -fSL "$HADOOP_ASC" -o /tmp/hadoop.tar.gz.asc \
+    && gpg --verify /tmp/hadoop.tar.gz.asc \
+    && tar -xvf /tmp/hadoop.tar.gz -C /opt/ \
+    && rm /tmp/hadoop.tar.gz*
+
+RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
+
+RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
+
+RUN mkdir /hadoop-data
+
+ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
+ENV HADOOP_CONF_DIR=/etc/hadoop
+ENV MULTIHOMED_NETWORK=1
+ENV USER=root
+ENV PATH $HADOOP_HOME/bin/:$PATH
+
+################### SPARK
 ENV SPARK_VERSION 2.4.7
 ENV SPARK_HOME /usr/spark
 #ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
