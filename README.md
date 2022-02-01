@@ -1,4 +1,4 @@
-# Commands for building and running the docker container for sHINNER
+# Commands for building and running the docker container for sHINER
 
 This docker was built based on the docker project provided by https://github.com/jsatch/spark-docker. 
 The only prequesite for this container is to have docker and docker-compose available in your environment.
@@ -52,7 +52,7 @@ Or if you are interested in running the REST API application:
 $ docker-compose up
 ```
 
-### Run spark-submit according to the running mode of sHINNER:
+### Run spark-submit according to the running mode of sHINER:
 
 To run the command line application run:
 ```
@@ -69,5 +69,5 @@ To run the REST API:
 $ docker-compose run spark-submit /bin/bash /start-submit-webserver.sh
 ```
 
-Observe that the command line with er evaluation mode receives two json files s arguments, by default it will bind to the folder /Config (specifically the files /Config/config.json and /Config/comparison.json, for more information about the condiguration files check the sHINNER Manual.pdf) inside the docker, do not forget to edit the folder path in docker-compose.yml.
+Observe that the command line with er evaluation mode receives two json files s arguments, by default it will bind to the folder /Config (specifically the files /Config/config.json and /Config/comparison.json, for more information about the condiguration files check the sHINER Manual.pdf) inside the docker, do not forget to edit the folder path in docker-compose.yml.
 The same occurs for the REST API, it receives as default database the folder /DemoGraphs inside the docker container. 
